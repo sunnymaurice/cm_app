@@ -1,3 +1,13 @@
+/*
+ *   2015.10.26 First commited 
+ *   Author: Maurice Sun
+ *   Function: Main scrip to be executed as a TCP server listening on
+ *   port: 60001 and store the data from TCP clients after parseing phase
+ *   in the mysql database.
+ *
+ *   Revision History:
+ */
+
 var net         = require('net');
 var fs          = require('fs');
 var pkt_parser  = require('./cm_proto_parser.js');

@@ -1,6 +1,6 @@
 var dp3710_config = require('./dp3710_protocol.js');
-var ms3500_config = require('./ms3500_protocol.js');
-// DP3710 & MS3510 use the same data transformation format.
+// DP3710 & MS3510 & M3500 use the same data transformation format.
+//var ms3500_config = require('./ms3500_protocol.js');
 //var ms3510_config = require('./ms3510_protocol.js'); 
 
 function scaleData (model, sn, id, gWeight, tWeight, nWeight, height, bmi, measuredDate, measuredTime) {
@@ -116,6 +116,7 @@ function DP3710parser(pkt_str)
 	
 }
 // Parser for New MS3500 Protocol
+/*
 function MS3500parser(pkt_str)
 {	
 	var modelNum = pkt_str.substr(ms3500_config.pkt_format.MODEL_OFFSET, ms3500_config.pkt_format.MODEL_LEN);
@@ -131,7 +132,7 @@ function MS3500parser(pkt_str)
 	var MS3500_record = scaleData(modelNum, SN, ID, gWeight, tWeight, nWeight, undefined, undefined, date, time);	
 	return MS3500_record;
 }
-
+*/
 // Parser for MS3510 Protocol
 /*
 function MS3510parser(pkt_str)
@@ -173,11 +174,14 @@ exports.pktInterpreter = function (pkt_str)
 	switch(modelNum) {
 		case 'DP3710':
 		case 'MS3510':
+		case 'MS3500':
 			record = DP3710parser(pkt_str);			
-			break;			
+			break;
+		/*				
 		case 'MS3500':
 			record = MS3500parser(pkt_str);
 			break;
+		*/	
 		/*	
 		case 'MS3510':
 			record = MS3510parser(pkt_str);

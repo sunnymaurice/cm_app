@@ -14,12 +14,12 @@ var pkt_parser  = require('./cm_proto_parser.js');
 var db_config   = require('./db_settings.js');
 var cm_db       = require('./cm_db.js');
 
-var tcpConnOptions = {
-	ip: 'localhost',
+var tcpConnOptions = {    
+	ip: 'localhost', //Notice: need to be modified to the ip of wlan0 once migrated to pi system.
 	port: 60001,
 	alt_port: 6969	
 };
-var logFileName = '/var/run/nodejs/wifiCM.log';
+var logFileName = '/var/run/cmTcpServerD.log';
 //var logFileName = 'wifiCM.log';
 // list of currently connected clients (users)
 var WsClients = [];	
@@ -42,7 +42,11 @@ var sql_pool = null;
 function handleNewData(pool, tableName, record)
 {
   //var check_sql = 'SELECT * from '+tableName+' WHERE pId = \''+record.pId+'\' AND measure_date = \''+record.measure_date+'\'';
-  var check_sql = 'SELECT * from '+tableName+' WHERE pId = ? AND measure_date = ?';
+  /*
+   *  If the data is from the same device, patient, and on the same day, just update it without insert a new record.
+   *  TODO: Make it flexible so that we can create a check_sql string accordingly later.
+   */
+  var check_sql = 'SELECT * from '+tableName+' WHERE gSn = ? AND pId = ? AND measure_date = ?';
   cm_db.getConnection(pool, function(err, connection) {
     if (err) {      
       if(connection)  connection.release();
@@ -52,6 +56,7 @@ function handleNewData(pool, tableName, record)
     }   
 
     var factors = [];
+    factors.push(record.gSn);
     factors.push(record.pId);    
     factors.push(record.measure_date);
 
@@ -76,10 +81,19 @@ function handleNewData(pool, tableName, record)
         {          
           //Update query to replace the existing record eariler at the same day.
           var updateFields = [];
+          // fields to be updated
           updateFields.push(record.gWeight);
-          updateFields.push(record.measure_time);
+          updateFields.push(record.tWeight);
+          updateFields.push(record.nWeight);
+          updateFields.push(record.pBMI);
+          updateFields.push(record.measure_time); 
+          // select condition: where gSn = '123456789' AND pid = 'A' AND measure_date = '2015-10-19'
+          updateFields.push(record.gSn);   
           updateFields.push(record.pId);
           updateFields.push(record.measure_date);
+          /*
+           * TODO: fine tune to check if there is any change in major columns of a patient in order to avoid redundant updates later.
+           */
           updateData(pool, tableName, updateFields);
         }            
         else
@@ -136,7 +150,7 @@ function insertData(pool, tableName, record)
 
 function updateData(pool, tableName, fields)
 {
-  var update_sql = 'UPDATE '+ tableName +' SET gWeight = ?, measure_time = ? WHERE pId = ? AND measure_date = ?';
+  var update_sql = 'UPDATE '+ tableName +' SET gWeight = ?, tWeight = ?, nWeight = ?, pBMI = ?, measure_time = ? WHERE gSn = ? AND pId = ? AND measure_date = ?';
   
   cm_db.getConnection(pool, function(err, connection) {
     if (err) {

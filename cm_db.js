@@ -16,7 +16,7 @@ var createTABLE_sql = 'CREATE TABLE IF NOT EXISTS '+ mydb.db_setting.DEFAULT_TAB
       'pBMI FLOAT,'+
       'measure_date DATE NOT NULL,'+
       'measure_time VARCHAR(8) NOT NULL,'+
-      'PRIMARY KEY ( pId, measure_date )'+
+      'PRIMARY KEY ( gSn, pId, measure_date )'+
     ');';
 
 

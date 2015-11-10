@@ -6,25 +6,49 @@
  *   in the mysql database.
  *
  *   Revision History:
- */
-
+ *      1. 2015.10.30 Maurice Sun 
+ *         Add 'gSn' as one of three primary keys and change the checking rule
+ *      2. 2015.11.02 Maurice Sun
+ *         Get listening IP from wlan0 instead of static IP assignment.
+ *      3. 2015.11.10 Maurice Sun
+ *         Use new database table to meet the requirments of ordering date date and time
+ *         , allow insertion of every data from scales, and the same number of weight digits 
+ *         shown on the scales.
+ */ 
 var net         = require('net');
 var fs          = require('fs');
 var pkt_parser  = require('./cm_proto_parser.js');
 var db_config   = require('./db_settings.js');
 var cm_db       = require('./cm_db.js');
+var os          = require('os');
+
+// Remark the startup time in the system log file, /var/log/cmTcpServerD.log
+var datetime = new Date();
+console.log('\nStart cmTcpServerD at: '+datetime);
 
 var tcpConnOptions = {    
-	ip: 'localhost', //Notice: need to be modified to the ip of wlan0 once migrated to pi system.
+	//ip: 'localhost', //Get the ip of wlan0 by getWlan0IP() 
 	port: 60001,
 	alt_port: 6969	
 };
+// Store the raw data sent from scales.
 var logFileName = '/var/run/cmTcpServerD.log';
 //var logFileName = 'wifiCM.log';
 // list of currently connected clients (users)
 var WsClients = [];	
 
 var sql_pool = null;
+
+function getWlan0IP()
+{
+  //First public IP of wlan0 (usually IPv4) as string
+  var ip = os.networkInterfaces().wlan0[0].address;
+  //var netmask = os.networkInterfaces().wlan0[0].netmask;
+  //var mac = os.networkInterfaces().wlan0[0].mac;
+  return ip;
+}
+
+tcpConnOptions.ip = getWlan0IP();
 
 //For columns in 'recordList' table in DB: CM_TEST
 //TBD: Shall we create an patient information table so that we can find the 'name' via 'id' we retrieved from scale?
@@ -264,7 +288,7 @@ tcpServer.maxConnections = 64;
 
 // Start to listen any income clients
 tcpServer.listen(tcpConnOptions.port, tcpConnOptions.ip);	
-console.log('opened server on %j', tcpServer.address());
+console.log('opened server on %j', tcpConnOptions.ip);
 
 //console.log('MS3710 GW offset: ' + ms3500_config.pkt_format.GROSS_WEIGHT_OFFSET + ' Length: ' + ms3500_config.pkt_format.GROSS_WEIGHT_LEN);
 /*
@@ -310,8 +334,11 @@ tcpServer.on('connection', function(sock) {
         //parse packet and prepare to insert the retrieved data into DB.
         dbData = pkt_parser.pktInterpreter(data_str);
 
-        // Save the measured data in the mysql DB.
-        handleNewData(sql_pool, db_config.db_setting.DEFAULT_TABLE, dbData);
+        // Save the measured data in the mysql DB.      
+        //handleNewData(sql_pool, db_config.db_setting.DEFAULT_TABLE, dbData);
+        // 2015.11.10 by Maurice.
+        // Don't do any check, just insert every record. For demo use only.
+        insertData(sql_pool, db_config.db_setting.DEFAULT_TABLE, dbData);
                 	
 	   	  // Write the data back to the socket, the client will receive it as data from the server
   	    sock.write('Server received:\n'+data+'\n');

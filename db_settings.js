@@ -8,9 +8,7 @@ exports.db_setting = (function () {
 		DEFAULT_HOST: 'localhost',
 		DEFAULT_PORT: 3306,
 		DEFAULT_USER: 'wificm',
-		DEFAULT_PASSWD: 'wificm'
-		//CMD_USE_DB: use_db,
-		//CMD_INSERT_DB: 
+		DEFAULT_PASSWD: 'wificm'		
 		/* calculate_BMI: cal_BMI,*/
 	};
 })();

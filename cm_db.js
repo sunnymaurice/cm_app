@@ -8,31 +8,16 @@ var createTABLE_sql = 'CREATE TABLE IF NOT EXISTS '+ mydb.db_setting.DEFAULT_TAB
     ' (' +
       'model VARCHAR(8) NOT NULL,' +
       'gSn VARCHAR(9) NOT NULL,' +
-      'pId VARCHAR(16) NOT NULL,' +      
-      'gWeight FLOAT NOT NULL,' +
-      'tWeight FLOAT NOT NULL,' +
-      'nWeight FLOAT NOT NULL,' +
-      'pHeight FLOAT,'+
-      'pBMI FLOAT,'+
+      'pId VARCHAR(16) NOT NULL,' +
+      'gWeight VARCHAR(6) NOT NULL,' +
+      'tWeight VARCHAR(6) NOT NULL,' +
+      'nWeight VARCHAR(6) NOT NULL,' +
+      'pHeight VARCHAR(5),'+
+      'pBMI VARCHAR(4),'+
       'measure_date DATE NOT NULL,'+
-      'measure_time VARCHAR(8) NOT NULL,'+
-      'PRIMARY KEY ( gSn, pId, measure_date )'+
+      'measure_time TIME NOT NULL,'+
+      'PRIMARY KEY ( pId, measure_date, measure_time )'+
     ');';
-
-
-
-exports.info_table = {
-  model: null,
-  gSn: null,  
-  pId: null,
-  gWeight: null,
-  tWeight: null,
-  nWeight: null,
-  pHeight: null,
-  pBMI: null,
-  measure_date: null,
-  measure_time: null 
-};
 
 exports.createNewPool = function()
 {

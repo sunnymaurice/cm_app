@@ -3,33 +3,20 @@ var dp3710_config = require('./dp3710_protocol.js');
 //var ms3500_config = require('./ms3500_protocol.js');
 //var ms3510_config = require('./ms3510_protocol.js'); 
 
-function scaleData (model, sn, id, gWeight, tWeight, nWeight, height, bmi, measuredDate, measuredTime) {
+
+function scaleData (model, sn, id, gWeight, tWeight, nWeight, precision, height, bmi, measuredDate, measuredTime) {
 	var wsData = {};
 	wsData.model = model;
 	wsData.gSn = sn;
 	wsData.pId = id;
-	wsData.gWeight = gWeight;
-	wsData.tWeight = tWeight;
-	wsData.nWeight = nWeight;
-	wsData.pHeight = height ? height : null;
-	wsData.pBMI = bmi ? bmi : null;
+	wsData.gWeight = gWeight.toFixed(precision);
+	wsData.tWeight = tWeight.toFixed(precision);
+	wsData.nWeight = nWeight.toFixed(precision);
+	wsData.pHeight = height ? height.toFixed(1) : null;
+	wsData.pBMI = bmi ? bmi.toFixed(1) : null;
 	wsData.measure_date = measuredDate;
 	wsData.measure_time = measuredTime;
 	return wsData;
-/*
-	return {
-		model: model,
-		gSn: sn,		
-		pId: id,	
-		gWeight: gWeight,
-		tWeight: tWeight,
-		nWeight: nWeight,
-		pHeight: height ? height : null,
-		pBMI: bmi ? bmi : null,
-		measure_date: measuredDate,
-		measure_time: measuredTime	
-	};
-*/	
 }
 // Transform the 'YEAR'+'Month'+'DAY'(20150924) to  Year-Month-Day (2015-09-24)
 function transformDbDate(dateStr)
@@ -76,6 +63,8 @@ exports.hex2String = function (pkt_data)
 	return pkt_str;
 };
 
+
+
 function DP3710parser(pkt_str)
 {
 	// Attain the decimal place of the measured weight
@@ -85,7 +74,7 @@ function DP3710parser(pkt_str)
 	modelNum = modelNum.trim(modelNum);
 	var SN = pkt_str.substr(dp3710_config.pkt_format.SN_OFFSET, dp3710_config.pkt_format.SN_LEN);
 	var ID = pkt_str.substr(dp3710_config.pkt_format.ID_OFFSET, dp3710_config.pkt_format.ID_LEN);
-	var gWeight = parseInt(pkt_str.substr(dp3710_config.pkt_format.GROSS_WEIGHT_OFFSET, dp3710_config.pkt_format.GROSS_WEIGHT_LEN))/Math.pow(10, decimalPlace);
+	var gWeight = parseInt(pkt_str.substr(dp3710_config.pkt_format.GROSS_WEIGHT_OFFSET, dp3710_config.pkt_format.GROSS_WEIGHT_LEN))/Math.pow(10, decimalPlace);	
 	var tWeight = parseInt(pkt_str.substr(dp3710_config.pkt_format.TARE_WEIGHT_OFFSET, dp3710_config.pkt_format.TARE_WEIGHT_LEN))/Math.pow(10, decimalPlace);
 	var nWeight = parseInt(pkt_str.substr(dp3710_config.pkt_format.NET_WEIGHT_OFFSET, dp3710_config.pkt_format.NET_WEIGHT_LEN))/Math.pow(10, decimalPlace);
 	var heightStr = pkt_str.substr(dp3710_config.pkt_format.HEIGHT_OFFSET, dp3710_config.pkt_format.HEIGHT_LEN);
@@ -94,17 +83,27 @@ function DP3710parser(pkt_str)
 	{
 		height = parseInt(heightStr)/10;
 	}
+	else
+	{
+		height = undefined;
+	}	
+	//console.log("height: "+height);
 	var bmiStr = pkt_str.substr(dp3710_config.pkt_format.BMI_OFFSET, dp3710_config.pkt_format.BMI_LEN);
 	var BMI;
 	if(bmiStr !== 'N/A')
 	{
 		BMI = parseInt(bmiStr)/10;
-	}	
+	}
+	else
+	{
+		BMI = undefined;
+	}
+	//console.log("BMI: "+BMI);	
 	var date = transformDbDate(pkt_str.substr(dp3710_config.pkt_format.DAY_OFFSET, dp3710_config.pkt_format.DAY_LEN));
 	//console.log('Date:' + date);
 	var time = transformDbTime(pkt_str.substr(dp3710_config.pkt_format.TIME_OFFSET, dp3710_config.pkt_format.TIME_LEN));
 	
-	var DP3710_record = scaleData(modelNum, SN, ID, gWeight, tWeight, nWeight, height, BMI, date, time);
+	var DP3710_record = scaleData(modelNum, SN, ID, gWeight, tWeight, nWeight, decimalPlace, height, BMI, date, time);
 
 	/*
 	for(i in DP3710_record)
@@ -115,44 +114,6 @@ function DP3710parser(pkt_str)
 	return DP3710_record;
 	
 }
-// Parser for New MS3500 Protocol
-/*
-function MS3500parser(pkt_str)
-{	
-	var modelNum = pkt_str.substr(ms3500_config.pkt_format.MODEL_OFFSET, ms3500_config.pkt_format.MODEL_LEN);
-	modelNum = modelNum.trim(modelNum);
-	var SN = pkt_str.substr(ms3500_config.pkt_format.SN_OFFSET, ms3500_config.pkt_format.SN_LEN);
-	var ID = pkt_str.substr(ms3500_config.pkt_format.ID_OFFSET, ms3500_config.pkt_format.ID_LEN);
-	var gWeight = parseInt(pkt_str.substr(ms3500_config.pkt_format.GROSS_WEIGHT_OFFSET, ms3500_config.pkt_format.GROSS_WEIGHT_LEN))/1000;
-	var tWeight = parseInt(pkt_str.substr(ms3500_config.pkt_format.TARE_WEIGHT_OFFSET, ms3500_config.pkt_format.TARE_WEIGHT_LEN))/1000;
-	var nWeight = parseInt(pkt_str.substr(ms3500_config.pkt_format.NET_WEIGHT_OFFSET, ms3500_config.pkt_format.NET_WEIGHT_LEN))/1000;
-	var date = transformDbDate(pkt_str.substr(ms3500_config.pkt_format.DAY_OFFSET, ms3500_config.pkt_format.DAY_LEN));
-	var time = transformDbTime(pkt_str.substr(ms3500_config.pkt_format.TIME_OFFSET, ms3500_config.pkt_format.TIME_LEN));
-	
-	var MS3500_record = scaleData(modelNum, SN, ID, gWeight, tWeight, nWeight, undefined, undefined, date, time);	
-	return MS3500_record;
-}
-*/
-// Parser for MS3510 Protocol
-/*
-function MS3510parser(pkt_str)
-{	
-	var modelNum = pkt_str.substr(ms3510_config.pkt_format.MODEL_OFFSET, ms3510_config.pkt_format.MODEL_LEN);
-	modelNum = modelNum.trim(modelNum);
-	var SN = pkt_str.substr(ms3510_config.pkt_format.SN_OFFSET, ms3510_config.pkt_format.SN_LEN);
-	var ID = pkt_str.substr(ms3510_config.pkt_format.ID_OFFSET, ms3510_config.pkt_format.ID_LEN);
-	var gWeight = parseInt(pkt_str.substr(ms3510_config.pkt_format.GROSS_WEIGHT_OFFSET, ms3510_config.pkt_format.GROSS_WEIGHT_LEN))/1000;
-	var tWeight = parseInt(pkt_str.substr(ms3510_config.pkt_format.TARE_WEIGHT_OFFSET, ms3510_config.pkt_format.TARE_WEIGHT_LEN))/1000;
-	var nWeight = parseInt(pkt_str.substr(ms3510_config.pkt_format.NET_WEIGHT_OFFSET, ms3510_config.pkt_format.NET_WEIGHT_LEN))/1000;
-	var date = transformDbDate(pkt_str.substr(ms3510_config.pkt_format.DAY_OFFSET, ms3510_config.pkt_format.DAY_LEN));
-	var time = transformDbTime(pkt_str.substr(ms3510_config.pkt_format.TIME_OFFSET, ms3510_config.pkt_format.TIME_LEN));
-	
-	var MS3510_record = scaleData(modelNum, SN, ID, gWeight, tWeight, nWeight, undefined, undefined, date, time);
-	
-	return MS3510_record;
-}
-*/
-
 
 /* 	
 	Author: Maurice Sun
@@ -176,17 +137,7 @@ exports.pktInterpreter = function (pkt_str)
 		case 'MS3510':
 		case 'MS3500':
 			record = DP3710parser(pkt_str);			
-			break;
-		/*				
-		case 'MS3500':
-			record = MS3500parser(pkt_str);
-			break;
-		*/	
-		/*	
-		case 'MS3510':
-			record = MS3510parser(pkt_str);
-			break;			
-		*/
+			break;		
 		// add case here!
 		/*	
 		case 'TBD':	

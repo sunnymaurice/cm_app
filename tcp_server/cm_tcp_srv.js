@@ -28,7 +28,7 @@ module.exports = exports = (function export_cm_tcp_srv() {
 
 	var cm_db, cm_db_setting;
 
-	var init_tcp_srv = function init_tcp_srv(mysql_db, mysql_db_setting) {
+	var init_tcp_srv = function init_tcp_srv(mysql_db, mysql_db_setting, sql_pool) {
 		cm_db = mysql_db;
 		cm_db_setting = mysql_db_setting;
 

@@ -33,7 +33,7 @@ var sql_pool = cm_db.createNewPool();
 cm_db.db_init(sql_pool);
 
 
-var tcpServer = tcp_srv_interface.init_tcp_srv(cm_db, db_setting);
+var tcpServer = tcp_srv_interface.init_tcp_srv(cm_db, db_setting, sql_pool);
 
 // test tcpServer Object
 console.log('tcpServer.maxConnections: ' + tcpServer.maxConnections);

@@ -17,25 +17,26 @@
  */ 
 
 var db_setting			= require('./config/db_settings.json');
-
 var cm_db				= require('./database/cm_db.js');
 var tcp_srv_interface	= require('./tcp_server/cm_tcp_srv.js');
+var restapi_srv			= require('./restapi_server/http_serv.js');
 
 // Remark the startup time in the system log file, /var/log/cmTcpServerD.log
 var datetime = new Date();
 console.log('\nStart cmTcpServerD at: ' + datetime);
-
 
 /* ---------------------------------------------------------------------------- */
 /* Main flow */
 
 var sql_pool = cm_db.createNewPool();
 cm_db.db_init(sql_pool);
-
-
 var tcpServer = tcp_srv_interface.init_tcp_srv(cm_db, db_setting, sql_pool);
 
-// test tcpServer Object
-console.log('tcpServer.maxConnections: ' + tcpServer.maxConnections);
 
+restapi_srv.setOnGET(function onGET() {
+	console.log('I Got a GET Message!');
+});
 
+restapi_srv.setOnPOST(function onPOST() {
+	console.log('I Got a POST Message!');
+});

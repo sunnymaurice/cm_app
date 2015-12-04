@@ -1,19 +1,18 @@
 /*
- *   2015.10.26 First commited 
+ *   Copyright (c) 2015, Charder Electronic CO. LTD. All rights reserved.
+ *   Redistribution and use in source and binary forms, with or without modification, 
+ *   are permitted provided that the following conditions are met:
+ *		1. Redistributions of source code must retain the above copyright notice, this list
+ *      of conditions and the following disclaimer.
+ *      2. Redistributions in binary form must reproduce the above copyright notice, this list 
+ *      of conditions and the following disclaimer in the documentation and/or other materials 
+ *      provided with the distribution.
+ *
+ *   2015.10.26 First created 
  *   Author: Maurice Sun
  *   Function: Main scrip to be executed as a TCP server listening on
  *   port: 60001 and store the data from TCP clients after parseing phase
- *   in the mysql database.
- *
- *   Revision History:
- *      1. 2015.10.30 Maurice Sun 
- *         Add 'gSn' as one of three primary keys and change the checking rule
- *      2. 2015.11.02 Maurice Sun
- *         Get listening IP from wlan0 instead of static IP assignment.
- *      3. 2015.11.10 Maurice Sun
- *         Use new database table to meet the requirments of ordering date date and time
- *         , allow insertion of every data from scales, and the same number of weight digits 
- *         shown on the scales.
+ *   in the mysql database. 
  */ 
 
 var db_setting			= require('./config/db_settings.json');

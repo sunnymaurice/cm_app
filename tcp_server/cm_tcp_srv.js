@@ -3,28 +3,38 @@ module.exports = exports = (function export_cm_tcp_srv() {
 	var fs			= require('fs');
 	var os          = require('os');
 	var pkt_parser	= require('./cm_proto_parser.js');
+	var osType = os.type();
+	var logFileName;
 
 	var tcpConnOptions = { 
 		ip: 'localhost', //Get the ip of wlan0 by getWlan0IP() 
 		port: 60001,
 		alt_port: 6969	
 	};
-
-	// Store the raw data sent from scales.
-	//var logFileName = '/var/run/cmTcpServerD.log';
-	var logFileName = 'wifiCM.log';
+	
+	if(osType === 'Linux')
+	{
+		// Store the raw data sent from scales.
+		logFileName = '/var/run/cmTcpServerD.log';
+		tcpConnOptions.ip = (function getWlan0IP() {
+			//First public IP of wlan0 (usually IPv4) as string
+			var ip = os.networkInterfaces().wlan0[0].address;
+			//var netmask = os.networkInterfaces().wlan0[0].netmask;
+			//var mac = os.networkInterfaces().wlan0[0].mac;
+			return ip;
+		})();
+	}
+	else if(osType === 'Darwin') //For OSX
+	{	
+	}
+	else //For Windows_NT
+	{	
+		logFileName = 'wifiCM.log';
+		console.log('Running on Windows, tcp conn ip: '+ tcpConnOptions.ip);
+	}
 
 	// list of currently connected clients (users)
 	var WsClients = [];
-
-
-	// tcpConnOptions.ip = (function getWlan0IP() {
-	// 	//First public IP of wlan0 (usually IPv4) as string
-	// 	var ip = os.networkInterfaces().wlan0[0].address;
-	// 	//var netmask = os.networkInterfaces().wlan0[0].netmask;
-	// 	//var mac = os.networkInterfaces().wlan0[0].mac;
-	// 	return ip;
-	// })();
 
 	var cm_db, cm_db_setting;
 

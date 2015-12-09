@@ -16,9 +16,14 @@
  */ 
 
 var db_setting			= require('./config/db_settings.json');
+var htppSrvSetting 		= require('./config/http_server.json');
+var path_set 			= require('./config/route_path.json');
 
 var cm_db				= require('./database/cm_db.js');
 var tcp_srv_interface	= require('./tcp_server/cm_tcp_srv.js');
+
+var getDB_api_interface = require('./route/getDBapi.js');
+var http_srv_interface	= require('./http_server/http_server.js');
 
 // Remark the startup time in the system log file, /var/log/cmTcpServerD.log
 var datetime = new Date();
@@ -34,7 +39,11 @@ cm_db.db_init(sql_pool);
 
 var tcpServer = tcp_srv_interface.init_tcp_srv(cm_db, db_setting, sql_pool);
 
+var getDBapiRouter = getDB_api_interface.init_router(cm_db, db_setting, sql_pool);
+
+var httpServer = http_srv_interface.init_http_srv(path_set.DB_API_ROUTE, getDBapiRouter);
+console.log('Http Server Title: ' + httpServer.get('title'));
 // test tcpServer Object
-console.log('tcpServer.maxConnections: ' + tcpServer.maxConnections);
+//console.log('tcpServer.maxConnections: ' + tcpServer.maxConnections);
 
 

@@ -15,7 +15,7 @@ module.exports = exports = (function export_cm_tcp_srv() {
 	if(osType === 'Linux')
 	{
 		// Store the raw data sent from scales.
-		logFileName = '/var/run/cmTcpServerD.log';
+		logFileName = '/var/run/cmServerD.log';
 		tcpConnOptions.ip = (function getWlan0IP() {
 			//First public IP of wlan0 (usually IPv4) as string
 			var ip = os.networkInterfaces().wlan0[0].address;
@@ -26,11 +26,12 @@ module.exports = exports = (function export_cm_tcp_srv() {
 	}
 	else if(osType === 'Darwin') //For OSX
 	{	
+
 	}
 	else //For Windows_NT
 	{	
 		logFileName = 'wifiCM.log';
-		console.log('Running on Windows, tcp conn ip: '+ tcpConnOptions.ip);
+		//console.log('Running on Windows, tcp conn ip: '+ tcpConnOptions.ip);
 	}
 
 	// list of currently connected clients (users)

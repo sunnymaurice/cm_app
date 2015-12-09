@@ -1,0 +1,89 @@
+#!/bin/sh
+# 
+# An init.d script for running a Node.js process as a service
+# using Forever as the process monitor. For more configuration 
+# options associated with Forever, see: https://github.com/nodejitsu/forever
+# This was written for Debian distributions such as Ubuntu. 
+#
+### BEGIN INIT INFO
+# Provides:		cmServerD
+# Required-Start:	isc-dhcp-server hostapd networking 
+# Required-Stop:	isc-dhcp-server hostapd networking
+# Should-Start:	
+# Should-Stop:
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	Charder privileged daemon
+# Description:		Handle accept TCP client connections from
+#			scale, received data and save them.
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/local/bin:/usr/bin
+export PATH
+NODE_BIN=/usr/local/bin/node
+SCRIPT_PATH=/usr/src/cm_app/main.js
+# Process name (For display)
+NAME=cmServerD
+DESC="Charder Scale Information Processing Daemon"
+PIDFILE=/var/run/cmServerD.pid
+LOGFILE=/var/log/cmServer.log
+# Forever settings to prevent the application spinning if it fails on launch.
+MIN_UPTIME=5000
+SPIN_SLEEP_TIME=2000
+
+#. /lib/lsb/init-functions
+
+#If the daemon is not there, then exit.
+test -x $NODE_BIN || exit 5
+test -f $SCRIPT_PATH || exit 5
+
+case "$1" in
+  start)
+	# Start the daemon.
+	echo "Starting nodejs application $NAME"
+	forever \
+	--pidFile $PIDFILE \
+	-a -l $LOGFILE \
+	--minUptime $MIN_UPTIME \
+	--spinSleepTime $SPIN_SLEEP_TIME \
+	start $SCRIPT_PATH 2>&1 > /dev/null &
+	RETVAL=$?
+	[ -f $PIDFILE ] && echo "Start nodejs application $NAME successful!!!"
+	;;
+  stop)
+	echo "Stopping nodejs application $NAME"
+	if [ -f $PIDFILE ]; then
+		echo "Shutting down $NAME"
+		# Tell Forever to stop the process.
+		forever stop $SCRIPT_PATH 2>&1 > /dev/null
+		# Get rid of the pidfile, since Forever won't do that.
+		rm -f $PIDFILE
+		RETVAL=$?
+	else
+		echo "$NAME is not running."
+		RETVAL = 0
+	fi
+	;;
+  restart)
+  	$0 stop
+	sleep 1
+	$0 start
+	;;
+  status)
+	echo `forever list` | grep -q "$SCRIPT_PATH"
+	if [ "$?" -eq "0" ]; then
+		echo "$NAME is running."
+		RETVAL=0
+	else
+		echo "$NAME is not running."
+		RETVAL=3
+	fi
+	;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart}" >&2
+	exit 1
+	;;
+esac
+
+exit $RETVAL
